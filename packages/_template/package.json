@@ -1,0 +1,27 @@
+{
+  "name": "@viperjuice/example-agent",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Example skill for the Pi agent template.",
+  "keywords": [
+    "pi-package"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "peerDependencies": {
+    "@mariozechner/pi-coding-agent": "*",
+    "typebox": "*"
+  },
+  "pi": {
+    "extensions": [
+      "./extensions/example-tools.ts"
+    ],
+    "skills": [
+      "./skills/example-skill"
+    ],
+    "prompts": [
+      "./prompts/run-example.md"
+    ]
+  }
+}

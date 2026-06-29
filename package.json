@@ -1,0 +1,21 @@
+{
+  "name": "@viperjuice/agents",
+  "private": true,
+  "description": "Fleet Pi agent packages and extensions for coding harnesses.",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "new-agent": "bash scripts/new-agent.sh",
+    "link-fleet": "bash scripts/link-fleet.sh",
+    "validate": "node scripts/validate-packages.mjs",
+    "typecheck": "pnpm -r exec tsc --noEmit -p tsconfig.json 2>/dev/null || true"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "typebox": "^1.0.0",
+    "typescript": "^5.8.3"
+  },
+  "packageManager": "pnpm@9.15.0"
+}
