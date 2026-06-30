@@ -10,6 +10,7 @@
     "new-agent": "bash scripts/new-agent.sh",
     "link-fleet": "bash scripts/link-fleet.sh",
     "validate": "node scripts/validate-packages.mjs",
+    "smoke": "bash scripts/smoke-agent.sh",
     "typecheck": "pnpm -r exec tsc --noEmit -p tsconfig.json 2>/dev/null || true"
   },
   "devDependencies": {

@@ -1,0 +1,14 @@
+---
+description: Pi agent monorepo — follow AGENTS.md
+alwaysApply: true
+---
+
+# Pi agents monorepo
+
+**Read `AGENTS.md` first.** Production runtime is `pi-agent-core` + `pi-ai`, not Pi CLI discovery.
+
+- One agent per `packages/<kebab-name>/`; scaffold with `pnpm run new-agent`.
+- `_template` is migration scaffold (CLI shape); new agents target SDK tools + `SKILL.md`.
+- Design reference: `docs/architecture.md`. Third-party deps: `docs/third-party-extensions.md`. Contributor process: `CONTRIBUTING.md`.
+
+Before marking work complete: `pnpm run validate` and `pnpm run typecheck`.

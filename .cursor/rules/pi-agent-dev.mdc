@@ -1,0 +1,19 @@
+---
+description: Pi agent package dev loop — see AGENTS.md
+globs: packages/**/*
+alwaysApply: false
+---
+
+# Package dev loop
+
+Follow `AGENTS.md` and `docs/architecture.md`. Target: SDK `AgentTool[]` + skill → `systemPrompt`.
+
+When editing `packages/<name>/` (not `_template`):
+
+1. `pnpm run validate`
+2. `pnpm run typecheck`
+3. Unit-test tool `execute` paths without an LLM where possible
+4. Optional CLI debug: `pi --skill ./skills/<name> -e ./extensions/...` (dev only)
+5. Optional: `pnpm run smoke -- <name>` or task **Pi Agents: Smoke Agent**
+
+Register new agents in `registry/agents.ts` when it exists. Harness integration tests run in consumer repos.

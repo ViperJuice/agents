@@ -1,0 +1,16 @@
+---
+description: Third-party Pi packages and npm deps — see docs/third-party-extensions.md
+globs: packages/**/tools/vendor/**/*.ts,packages/**/package.json
+alwaysApply: false
+---
+
+# Third-party dependencies
+
+Read `docs/third-party-extensions.md` and `AGENTS.md` § Third-party dependencies.
+
+- **SDK production:** `tools/vendor/<pkg>.ts` → `AgentTool[]`; allowlist in registry + `SKILL.md`. Never ambient `pi install` discovery.
+- **CLI dev only:** `bundledDependencies` + `pi.extensions` `node_modules/...` paths; optional `.pi/settings.json` filters.
+- **npm libraries:** normal `dependencies`; no Pi wiring.
+- Pin versions; review vendor source before merge. Unit-test adapter `execute` paths.
+
+Example adapter: `docs/examples/vendor-adapter.example.ts`.

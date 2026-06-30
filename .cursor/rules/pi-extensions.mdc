@@ -1,0 +1,19 @@
+---
+description: Pi agent tool implementation — SDK AgentTool shape
+globs: packages/**/tools/**/*.ts,packages/**/extensions/**/*.ts
+alwaysApply: false
+---
+
+# Agent tools
+
+Target shape: `AgentTool` from `pi-agent-core` (see `docs/architecture.md`). Legacy CLI extensions in `_template` use `PiApi.registerTool` — migrate to SDK exports.
+
+Patterns (from `dotfiles/phase-loop-pi/extensions/phase-loop-tools.ts`):
+
+- TypeBox schemas for parameters
+- `execFile`/`spawn` — never `shell: true`
+- Timeouts, `maxBuffer`, secret redaction
+- Export pure helpers for unit tests
+- Loop-level `beforeToolCall` for governance when wired through `runtime/`
+
+Third-party tools: `tools/vendor/` adapters + registry allowlist — `docs/third-party-extensions.md`.

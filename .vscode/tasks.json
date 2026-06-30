@@ -1,0 +1,73 @@
+{
+  "version": "2.0.0",
+  "inputs": [
+    {
+      "id": "agentName",
+      "type": "promptString",
+      "description": "Package name under packages/",
+      "default": "my-agent"
+    }
+  ],
+  "tasks": [
+    {
+      "label": "Pi Agents: Validate",
+      "type": "shell",
+      "command": "pnpm run validate",
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Pi Agents: Typecheck",
+      "type": "shell",
+      "command": "pnpm run typecheck",
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": ["$tsc"]
+    },
+    {
+      "label": "Pi Agents: Smoke Agent",
+      "type": "shell",
+      "command": "pnpm run smoke -- ${input:agentName}",
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Pi Agents: Local Install (fleet)",
+      "type": "shell",
+      "command": "pnpm run link-fleet -- --local",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Pi Agents: Local Install (package)",
+      "type": "shell",
+      "command": "pi install . -l",
+      "options": {
+        "cwd": "${workspaceFolder}/packages/${input:agentName}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    }
+  ]
+}

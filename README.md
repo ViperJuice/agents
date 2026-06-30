@@ -1,123 +1,66 @@
 # agents
 
-Monorepo for **Pi agent packages** — extensions, skills, and prompts you install across your coding fleet and harnesses.
+Monorepo for **programmatic Pi agents** — standalone roles with explicit tools and skills, invoked headlessly by orchestrators and other agents across the coding fleet.
 
-Each package is a self-contained [Pi package](https://github.com/badlogic/pi-mono) (`pi install`) with TypeScript extensions that register tools, plus skills and prompt templates. The [agent-harness](https://github.com/ViperJuice/agent-harness) phase-loop runtime can dispatch `executor=pi` lanes against repo-local `phase-loop-pi/**` material; this repo is where you **author and version** reusable Pi agents that are not tied to one product repo.
+Production runtime is **`pi-agent-core` + `pi-ai`** (`runAgentLoop`, explicit tool allowlists). The Pi CLI is for optional interactive debugging only.
 
-## Layout
+## Documentation
 
-```
-agents/
-├── packages/
-│   ├── _template/          # scaffold — copy via `pnpm run new-agent`
-│   └── <your-agent>/       # one Pi package per agent
-├── scripts/
-│   ├── new-agent.sh        # create a package from _template
-│   ├── link-fleet.sh       # pi install all packages
-│   └── validate-packages.mjs
-└── package.json            # pnpm workspace root
-```
-
-### Pi package anatomy
-
-Every agent under `packages/<name>/` follows the same shape as `dotfiles/phase-loop-pi`:
-
-| Path | Purpose |
+| Doc | Audience |
 | --- | --- |
-| `package.json` | `"pi-package"` keyword + `"pi": { extensions, skills, prompts }` |
-| `extensions/*.ts` | Register tools via Pi's extension API (`registerTool`) |
-| `skills/<name>/SKILL.md` | Agent behavior contract (when to use, tools, rules) |
-| `prompts/*.md` | Parameterized prompt templates (`{{arg}}` substitution) |
-| `bin/*` (optional) | Wrapper CLIs (see `pi-agent-watch` in phase-loop-pi) |
-
-Peer dependencies: `@mariozechner/pi-coding-agent`, `typebox` (for tool schemas).
+| [`AGENTS.md`](AGENTS.md) | Harness agents (Claude, Cursor, Codex) working in this repo |
+| [`docs/architecture.md`](docs/architecture.md) | Design: SDK vs CLI, registry, isolation, fleet integration |
+| [`docs/third-party-extensions.md`](docs/third-party-extensions.md) | npm + Pi package deps, adapters, allowlists |
+| [`CONTRIBUTING.md`](CONTRIBUTING.md) | Human contributor workflow and PR checklist |
+| [`CLAUDE.md`](CLAUDE.md) | Claude Code loader (`@AGENTS.md`) |
 
 ## Quick start
 
 ```bash
 cd ~/code/agents
-corepack enable
 pnpm install
 
-# Scaffold a new agent
-pnpm run new-agent -- code-reviewer "Review diffs with harness-neutral guardrails"
-
-# Validate manifests and referenced files
+pnpm run new-agent -- my-agent "One-line description"
 pnpm run validate
-
-# Install every package onto this machine (global)
-pnpm run link-fleet
-
-# Or project-local install while developing in a repo
-pnpm run link-fleet -- --local
+pnpm run typecheck
 ```
 
-Load one package ad hoc:
+Target per-agent layout (see `docs/architecture.md`):
 
-```bash
-pi install ~/code/agents/packages/code-reviewer
-pi -e ~/code/agents/packages/code-reviewer/extensions/example-tools.ts \
-   --skill ~/code/agents/packages/code-reviewer/skills/code-reviewer
+```
+packages/<name>/
+├── skills/<name>/SKILL.md   # → systemPrompt
+├── tools/index.ts           # → AgentTool[]
+└── agent.ts                 # → registry metadata
 ```
 
-## Two deployment modes
+Planned integration surface: `registry/agents.ts` + `runtime/run-agent.ts`.
 
-Pi agents show up in two places in your fleet. Keep the distinction explicit:
+## Commands
 
-### 1. Fleet-wide packages (this repo)
-
-Install with `pi install` so skills/extensions are available on every machine:
-
-```bash
-pi install ~/code/agents/packages/my-agent
-```
-
-Dotfiles bootstrap can symlink fleet packages under `~/.pi/agent/packages/` the same way it already links `phase-loop-pi`.
-
-### 2. Repo-local phase-loop material (consumer repos)
-
-When [agent-harness](https://github.com/ViperJuice/agent-harness) launches `executor=pi` for a lane, it injects a context file built from **that repo's**:
-
-- `phase-loop-pi/**` — prompts, skills, extensions for lane execution
-- `pi-config/**` — Pi-only installed-skill metadata (not duplicated Codex/Claude skills)
-
-Today those live in [dotfiles](https://github.com/ViperJuice/dotfiles) (`~/code/dotfiles/phase-loop-pi`). You can:
-
-- **Keep them in dotfiles** for bootstrap/symlink ergonomics, and develop new *generic* agents here.
-- **Move phase-loop-pi here later** and point dotfiles bootstrap at `~/code/agents/packages/phase-loop-pi` instead.
-
-See `agent-harness/phase-loop-runtime/src/phase_loop_runtime/_contract_docs/phase-loop/pi-loop-control.md` for the full Pi ↔ phase-loop contract.
-
-## Harness integration
-
-| Harness | How Pi agents connect |
+| Command | Purpose |
 | --- | --- |
-| **Pi CLI** | `pi install`, `-e`, `--skill`, `--tools` allowlists |
-| **phase-loop** | `executor=pi` child lanes; `pi-agent-watch` supervisor wrapper |
-| **Claude / Codex / Gemini / OpenCode** | Phase-loop dispatches child executors; Pi supervises or executes simple lanes |
-| **fractal-agents** | Lower-level `pi-agent-core` loop (separate from Pi CLI packages) |
+| `pnpm run validate` | Manifest and file reference checks |
+| `pnpm run typecheck` | TypeScript across packages |
+| `pnpm run new-agent -- <name> "<desc>"` | Scaffold from `_template` |
+| `pnpm run smoke -- <name>` | CLI dev smoke only (requires `pi` on PATH) |
 
-Pi as `executor=pi` is a **bounded child runner** — it does not own scheduling, worktrees, or merge reduction. Supervisor work uses `phase-loop-pi` tools (`phase_loop_state`, `phase_loop_run`, …).
+## Cursor workflow
 
-## Authoring checklist
+| Mechanism | Location |
+| --- | --- |
+| Rules | `.cursor/rules/pi-*.mdc` — pointers to `AGENTS.md` |
+| Hook | `.cursor/hooks/validate-after-edit.mjs` — validates after `packages/` edits |
+| Tasks | `.vscode/tasks.json` — **Pi Agents:** Validate, Typecheck, Smoke, Local Install |
 
-When adding a new agent package:
-
-1. `pnpm run new-agent -- <kebab-name> "<description>"`
-2. Replace `extensions/example-tools.ts` with real tools (use `execFile`, timeouts, redaction — see `dotfiles/phase-loop-pi/extensions/phase-loop-tools.ts`)
-3. Write the skill contract: tools list, when-to-use, hard rules
-4. Add prompt templates with typed `arguments:` frontmatter
-5. `pnpm run validate`
-6. `pi install packages/<name>` and smoke-test with `pi --print -p "Use the <name> skill…"`
-
-Optional guardrail extension (destructive bash/path blocks): copy the pattern from `phase-loop-guardrails.ts`.
+Default test task: **Pi Agents: Validate** (`Tasks: Run Task`).
 
 ## Related repos
 
-- `~/code/agent-harness` — phase-loop runtime, `executor=pi` launcher, protocol docs
-- `~/code/dotfiles/phase-loop-pi` — production phase-loop Pi supervisor package
-- `~/code/fractal-agents` — `pi-agent-core` integration for recursive agent infrastructure
+- [`agent-harness`](https://github.com/ViperJuice/agent-harness) — phase-loop; `executor=pi` uses repo-local `phase-loop-pi/**`
+- `dotfiles/phase-loop-pi` — phase-loop supervisor package
+- `fractal-agents` — `pi-agent-core` subscription transport reference
 
 ## License
 
-Private fleet tooling — add a license when you publish any package externally.
+Apache-2.0 when published externally; currently fleet tooling.
