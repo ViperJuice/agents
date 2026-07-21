@@ -9,7 +9,7 @@ Read `docs/architecture.md` for the full design and `docs/third-party-extensions
 - **Production runtime:** `@earendil-works/pi-agent-core` + `@earendil-works/pi-ai` (`runAgentLoop`, explicit `AgentTool[]`, skill → `systemPrompt`).
 - **Not production runtime:** Pi CLI (`pi install`, global discovery, `pi --print`). Use CLI only for optional interactive debugging.
 - **One package per agent** under `packages/<kebab-name>/`.
-- **Integration surface:** `registry/` + `runtime/run-agent.ts` (target layout — implement when adding the second real agent).
+- **Integration surface:** `registry/agents.ts` + `runtime/run-agent.ts` + `packages/_shared/tools/vendor/`.
 - **Isolation:** each `runAgent(id, input)` call gets only that agent's tools and skill. No ambient tool discovery.
 
 ## Repository layout
@@ -22,8 +22,9 @@ agents/
 ├── docs/architecture.md   # design reference
 ├── docs/third-party-extensions.md  # npm + Pi package dependencies
 ├── packages/<name>/       # one agent per directory
-├── registry/              # agentId → definition (planned)
-├── runtime/               # runAgent() SDK entrypoint (planned)
+├── registry/              # agentId → definition + vendor catalog
+├── runtime/               # runAgent(), pickTools, Pi extension bridge
+├── packages/_shared/      # vendor loaders (pi-web-access, …)
 └── scripts/               # validate, scaffold, dev smoke
 ```
 
@@ -55,7 +56,9 @@ Production composition is **registry allowlists**, not global `pi install`. See 
 | --- | --- | --- |
 | **1 — npm libraries** | zod, HTTP clients, parsers | `dependencies` in package.json; use in `tools/*.ts` |
 | **2 — Pi packages** | npm/git `pi-package` extensions | **SDK:** `tools/vendor/<pkg>.ts` adapters → `AgentTool[]`; **CLI dev only:** `bundledDependencies` + `pi.extensions` `node_modules/...` paths |
-| **3 — fleet shared** | `packages/_shared/tools/` | Import in registry; allowlist per agent |
+| **3 — fleet shared** | `packages/_shared/tools/vendor/` | `loadVendorTools("pi-web-access", ["fetch_content", …])` in registry |
+
+Pre-staged vendors live in `registry/catalog.ts` (pinned package + tool names). Example agents: `researcher` (full web-access), `web-fetcher` (fetch subset).
 
 Rules:
 
@@ -73,8 +76,20 @@ pnpm install
 pnpm run validate          # manifest / file references
 pnpm run typecheck         # TypeScript (packages with tsconfig)
 pnpm run new-agent -- <name> "<description>"
-pnpm run smoke -- <name>   # CLI dev smoke only; requires pi on PATH
+pnpm run test             # unit tests (pickTools, registry)
+pnpm run agent -- <id> "<prompt>"  # SDK run (requires provider auth)
 ```
+
+### Agent enablement (subscription vs API key)
+
+| Env | Effect |
+| --- | --- |
+| `AGENTS_DISABLE=panel-claude,researcher` | Force-disable listed agents |
+| `AGENTS_FORCE_ENABLE=panel-grok` | Force-enable even if default-off |
+| `AGENTS_ALLOW_API_KEY=1` | Enable API-key (metered) SDK agents such as `panel-grok` |
+| `FIRECRAWL_API_URL` | Local Firecrawl base (default `http://ai.taile09692.ts.net:3002`) |
+
+`panel-grok` is off by default: Grok CLI is subscription-login, but pi-ai `xai` is API-key only. Anthropic `panel-claude` supports Claude Pro/Max OAuth in pi-ai; use `AGENTS_DISABLE=panel-claude` to opt out.
 
 Cursor: **Tasks: Run Task → Pi Agents: Validate** (default test task). See README § Cursor workflow.
 
@@ -83,7 +98,7 @@ Cursor: **Tasks: Run Task → Pi Agents: Validate** (default test task). See REA
 1. `pnpm run new-agent -- <kebab-name> "<description>"`
 2. Implement SDK tools in `tools/index.ts` (`AgentTool` + TypeBox schemas).
 3. Write `skills/<name>/SKILL.md` (when to use, tool list, hard rules).
-4. Register in `registry/agents.ts` when the registry exists.
+4. Register in `registry/agents.ts` — compose tools with `loadVendorTools()` when using shared extensions.
 5. Add unit tests for tool `execute` paths (including any `tools/vendor/` adapters).
 6. `pnpm run validate` before commit.
 

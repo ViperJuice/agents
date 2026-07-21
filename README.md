@@ -34,7 +34,9 @@ packages/<name>/
 └── agent.ts                 # → registry metadata
 ```
 
-Planned integration surface: `registry/agents.ts` + `runtime/run-agent.ts`.
+Planned integration surface: `registry/agents.ts` + `runtime/run-agent.ts` + `packages/_shared/tools/vendor/`.
+
+Example agents: `researcher`, `web-fetcher` (pi-web-access subsets).
 
 ## Commands
 
@@ -43,7 +45,8 @@ Planned integration surface: `registry/agents.ts` + `runtime/run-agent.ts`.
 | `pnpm run validate` | Manifest and file reference checks |
 | `pnpm run typecheck` | TypeScript across packages |
 | `pnpm run new-agent -- <name> "<desc>"` | Scaffold from `_template` |
-| `pnpm run smoke -- <name>` | CLI dev smoke only (requires `pi` on PATH) |
+| `pnpm run test` | Unit tests (pickTools, registry, vendor validation) |
+| `pnpm run agent -- <id> "<prompt>"` | SDK agent run (requires provider auth) |
 
 ## Cursor workflow
 

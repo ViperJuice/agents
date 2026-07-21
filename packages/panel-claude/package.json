@@ -1,0 +1,6 @@
+{
+  "name": "@viperjuice/agent-panel-claude",
+  "private": true,
+  "type": "module",
+  "description": "Claude-shaped panel review agent — Read/Write aliases over Pi coding tools."
+}

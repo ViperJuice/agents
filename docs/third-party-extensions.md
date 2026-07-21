@@ -88,24 +88,25 @@ Adapter strategies:
 
 See `docs/examples/vendor-adapter.example.ts`.
 
-### Tier 3 — Fleet-internal shared tools
+### Tier 3 — Fleet-internal shared tools (implemented)
 
-Reusable `AgentTool` factories under `packages/_shared/tools/` (or `packages/toolkit/` when created). Import from multiple agents; allowlist per agent in the registry.
+Vendor loaders under `packages/_shared/tools/vendor/` with metadata in `registry/catalog.ts`.
 
 ```typescript
-// registry/agents.ts (target)
-import { gitStatus } from "../packages/_shared/tools/git";
-import { localTools } from "../packages/reviewer/tools";
-import { grepTools, pickTools } from "../packages/reviewer/tools/vendor/some-pi-tools";
+// registry/agents.ts
+import { loadVendorTools } from "../packages/_shared/tools/vendor/load-vendor-tools.js";
 
-reviewer: {
-  tools: () => [
-    ...localTools,
-    gitStatus,
-    ...pickTools(grepTools, ["grep_repo", "grep_path"]),
-  ],
+researcher: {
+  tools: () => loadVendorTools("pi-web-access"),
+},
+"web-fetcher": {
+  tools: () => loadVendorTools("pi-web-access", ["fetch_content", "get_search_content"]),
 },
 ```
+
+`loadVendorTools` uses `runtime/pi-extension-bridge.ts` to load Pi extension modules headlessly and cache `AgentTool[]`. Add new frequent vendors to `registry/catalog.ts`, then allowlist per agent.
+
+Manual adapters in `packages/<agent>/tools/vendor/` remain valid when the bridge is insufficient.
 
 **Per-agent allowlisting is mandatory.** Third-party tools never load globally for all agents.
 
@@ -137,7 +138,7 @@ export function pickTools(tools: AgentTool[], names: string[]): AgentTool[] {
 }
 ```
 
-Implement `pickTools` in `runtime/pick-tools.ts` when the registry lands.
+Implement `pickTools` in `runtime/pick-tools.ts` (done). Register new vendors in `registry/catalog.ts`.
 
 ## Security and review
 

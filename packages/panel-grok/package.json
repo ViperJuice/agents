@@ -1,0 +1,6 @@
+{
+  "name": "@viperjuice/agent-panel-grok",
+  "private": true,
+  "type": "module",
+  "description": "Grok-shaped panel review agent — read_file/grep/list_dir aliases (API-key lane)."
+}

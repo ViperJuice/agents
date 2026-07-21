@@ -1,0 +1,5 @@
+{
+  "name": "@viperjuice/agent-web-fetcher",
+  "private": true,
+  "description": "URL fetch agent — subset of pi-web-access tools."
+}

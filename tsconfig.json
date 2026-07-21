@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.base.json",
+  "include": [
+    "runtime/**/*.ts",
+    "registry/**/*.ts",
+    "packages/_shared/**/*.ts",
+    "packages/researcher/**/*.ts",
+    "packages/web-fetcher/**/*.ts",
+    "packages/panel-claude/**/*.ts",
+    "packages/panel-grok/**/*.ts",
+    "packages/panel-codex/**/*.ts",
+    "scripts/run-agent.ts",
+    "tests/**/*.ts"
+  ]
+}

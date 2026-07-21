@@ -1,0 +1,6 @@
+{
+  "name": "@viperjuice/agents-shared",
+  "private": true,
+  "type": "module",
+  "description": "Shared SDK tool adapters and vendor loaders for fleet agents."
+}

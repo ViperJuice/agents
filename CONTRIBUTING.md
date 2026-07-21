@@ -15,7 +15,7 @@ Thanks for extending the fleet agent library. Read `AGENTS.md` for architecture,
    - `skills/<name>/SKILL.md` — behavior contract
    - `tools/index.ts` — `AgentTool[]` exports with TypeBox schemas
    - `agent.ts` — metadata for registry entry
-3. Register in `registry/agents.ts` when that file exists.
+3. Register in `registry/agents.ts` — use `loadVendorTools("pi-web-access", [...])` for shared extensions.
 4. Third-party Pi packages: add `tools/vendor/<vendor>.ts` adapters per `docs/third-party-extensions.md`; allowlist tool names in registry + `SKILL.md`.
 5. Add unit tests for tool logic (no LLM required for most cases).
 6. Run checks (below).

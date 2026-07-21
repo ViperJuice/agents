@@ -203,34 +203,30 @@ Migrate agents incrementally; do not block new SDK-shaped agents on full templat
 
 CI should run validate + typecheck + unit tests. Live LLM integration tests are opt-in (subscription auth required).
 
-## Future layout (planned)
+## Shared vendor layer (implemented)
 
 ```
-agents/
-├── registry/agents.ts
-├── runtime/
-│   ├── run-agent.ts
-│   ├── build-config.ts
-│   └── load-skill.ts
-└── packages/
-    └── <agent>/
-        ├── skills/<agent>/SKILL.md
-        ├── tools/index.ts
-        └── agent.ts
+registry/catalog.ts          # pinned vendors (pi-web-access @ 0.13.0)
+packages/_shared/tools/vendor/load-vendor-tools.ts
+runtime/pi-extension-bridge.ts   # headless Pi extension → AgentTool[]
+runtime/pick-tools.ts
+runtime/run-agent.ts
+registry/agents.ts           # researcher, web-fetcher examples
 ```
 
-Implement `registry/` and `runtime/` when the first non-template agent lands.
+Add a frequent extension:
+
+1. Pin in root `package.json` `dependencies`
+2. Add entry to `registry/catalog.ts` (`toolNames`, `extensionEntry`)
+3. Allowlist per agent in `registry/agents.ts` via `loadVendorTools(id, [...names])`
+4. Document allowed tools in agent `SKILL.md`
+
+Run: `pnpm run agent -- researcher "…"` (live auth required).
+
+## Future layout
+
+Local agent tools still live under `packages/<agent>/tools/` when an agent needs bespoke `AgentTool` implementations beyond shared vendors.
 
 ## Third-party extensions and dependencies
 
-Fleet agents may use npm libraries and third-party Pi packages. **Production composition is explicit in the registry**, not Pi CLI discovery.
-
-| Tier | Mechanism |
-| --- | --- |
-| npm libraries | Normal `dependencies`; used inside `tools/*.ts` |
-| Pi packages (CLI dev) | `bundledDependencies` + `pi.extensions` `node_modules/...` paths |
-| Pi packages (SDK prod) | `tools/vendor/*.ts` adapters exporting `AgentTool[]`; registry allowlist |
-
-CLI package filtering in `.pi/settings.json` applies to interactive runs only. SDK agents use `pickTools()` / explicit arrays per agent definition.
-
-Full workflow, security checklist, and adapter example: **`docs/third-party-extensions.md`** and **`docs/examples/vendor-adapter.example.ts`**.
+See **`docs/third-party-extensions.md`**. Production composition is explicit in the registry via `loadVendorTools()` and `pickTools()`.

@@ -1,0 +1,5 @@
+{
+  "name": "@viperjuice/agent-researcher",
+  "private": true,
+  "description": "Web research agent — Firecrawl on AI tailnet + pi-web-access tools."
+}

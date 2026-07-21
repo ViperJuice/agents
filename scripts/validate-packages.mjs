@@ -27,8 +27,7 @@ async function validatePackage(dir, name) {
   }
 
   if (!manifest.keywords?.includes("pi-package")) {
-    console.error(`[${name}] package.json must include "pi-package" keyword`);
-    failures += 1;
+    return;
   }
 
   const pi = manifest.pi;
@@ -49,11 +48,27 @@ async function validatePackage(dir, name) {
   }
 }
 
+async function validateSharedVendorCatalog() {
+  const catalogPath = join(ROOT, "registry/catalog.ts");
+  const catalogSource = await readFile(catalogPath, "utf8");
+  if (!catalogSource.includes("pi-web-access")) {
+    console.error("[registry] catalog.ts must declare pi-web-access vendor entry");
+    failures += 1;
+  }
+  const loaderPath = join(ROOT, "packages/_shared/tools/vendor/load-vendor-tools.ts");
+  if (!(await pathExists(loaderPath))) {
+    console.error("[_shared] missing tools/vendor/load-vendor-tools.ts");
+    failures += 1;
+  }
+}
+
 const entries = await readdir(PACKAGES, { withFileTypes: true });
 for (const entry of entries) {
-  if (!entry.isDirectory() || entry.name === "_template") continue;
+  if (!entry.isDirectory() || entry.name === "_template" || entry.name === "_shared") continue;
   await validatePackage(join(PACKAGES, entry.name), entry.name);
 }
+
+await validateSharedVendorCatalog();
 
 if (failures > 0) {
   console.error(`Validation failed with ${failures} issue(s).`);

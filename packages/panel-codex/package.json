@@ -1,0 +1,6 @@
+{
+  "name": "@viperjuice/agent-panel-codex",
+  "private": true,
+  "type": "module",
+  "description": "Codex-shaped panel review agent — exec_command alias over Pi bash."
+}
